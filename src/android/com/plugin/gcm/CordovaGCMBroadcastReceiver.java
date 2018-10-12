@@ -2,13 +2,20 @@ package com.plugin.gcm;
 
 import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.NotificationChannel;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Icon;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Build;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
@@ -86,15 +93,22 @@ public class CordovaGCMBroadcastReceiver extends WakefulBroadcastReceiver {
 			Log.d(TAG, "Received notId: " + notId);
 		}
 
-
 		NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+		
+		//For Android API 26 or above create a default channel
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        		NotificationChannel channel = new NotificationChannel("default", "defaultName", NotificationManager.IMPORTANCE_HIGH);
+    			channel.setDescription("defaultDescription");
+    			mNotificationManager.createNotificationChannel(channel);
+    		}
+		
 		String appName = getAppName(context);
 
 		Intent notificationIntent = new Intent(context, PushHandlerActivity.class);
 		notificationIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		notificationIntent.putExtra("pushBundle", extras);
 
-    PendingIntent contentIntent = PendingIntent.getActivity(context, notId, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+    		PendingIntent contentIntent = PendingIntent.getActivity(context, notId, notificationIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 
 		int defaults = Notification.DEFAULT_ALL;
 
@@ -106,14 +120,15 @@ public class CordovaGCMBroadcastReceiver extends WakefulBroadcastReceiver {
 		}
 
 		NotificationCompat.Builder mBuilder =
-				new NotificationCompat.Builder(context)
+				new NotificationCompat.Builder(context, "default")
 						.setDefaults(defaults)
 						.setSmallIcon(getSmallIcon(context, extras))
+						//.setLargeIcon(getLargeIcon(context, extras))
 						.setWhen(System.currentTimeMillis())
 						.setContentTitle(extras.getString("title"))
 						.setTicker(extras.getString("title"))
 						.setContentIntent(contentIntent)
-            .setColor(getColor(extras))
+            					.setColor(getColor(extras))
 						.setAutoCancel(true);
 
 		String message = extras.getString("message");
@@ -139,21 +154,24 @@ public class CordovaGCMBroadcastReceiver extends WakefulBroadcastReceiver {
 			defaults &= ~Notification.DEFAULT_SOUND;
 			mBuilder.setDefaults(defaults);
 		}
-
-		final Notification notification = mBuilder.build();
+		
 		final int largeIcon = getLargeIcon(context, extras);
 		if (largeIcon > -1) {
-			notification.contentView.setImageViewResource(android.R.id.icon, largeIcon);
-		}
+			Log.d(TAG, "Setting large icon... ");
+			Drawable drawable = context.getResources().getDrawable(largeIcon);
+			Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
+                	mBuilder.setLargeIcon(bitmap);
+		} 
 
+		final Notification notification = mBuilder.build();
 		mNotificationManager.notify(appName, notId, notification);
 	}
 
 	private static String getAppName(Context context) {
 		CharSequence appName =
 				context
-						.getPackageManager()
-						.getApplicationLabel(context.getApplicationInfo());
+					.getPackageManager()
+					.getApplicationLabel(context.getApplicationInfo());
 
 		return (String) appName;
 	}
@@ -202,7 +220,7 @@ public class CordovaGCMBroadcastReceiver extends WakefulBroadcastReceiver {
 			icon = getIconValue(context.getPackageName(), iconNameFromServer);
 		}
 
-		// try a custom included icon in our bundle named ic_stat_notify(.png)
+		// try a custom included icon in our bundle named ic_notify(.png)
 		if (icon == -1) {
 			icon = getIconValue(context.getPackageName(), "ic_notify");
 		}
