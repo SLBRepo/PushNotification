@@ -25,8 +25,12 @@
 	</js-module>
 
 	<engines>
-		<engine name="cordova" version=">=3.0.0"/>
-		<engine name="cordova-android" version=">=3.6.0"/>
+		<engine name="cordova" version=">=6.4.0" />
+    		<engine name="cordova-ios" version=">=4.3.0" />
+    		<engine name="cordova-android" version=">=5.1.0" />
+    		<engine name="apple-xcode" version=">=8.0.0" />
+    		<engine name="apple-ios" version=">=7.0.0" />
+
 	</engines>
 
 	<dependency id="cordova-plugin-device"/>
@@ -66,9 +70,11 @@
 		<source-file src="src/android/com/plugin/gcm/CordovaGCMBroadcastReceiver.java" target-dir="src/com/plugin/gcm/"/>
 		<source-file src="src/android/com/plugin/gcm/PushHandlerActivity.java" target-dir="src/com/plugin/gcm/"/>
 		<source-file src="src/android/com/plugin/gcm/PushPlugin.java" target-dir="src/com/plugin/gcm/"/>
-		<!--framework src="com.android.support:support-v4:26.+" /-->
+		<framework src="com.android.support:support-v4:26.+" />
 		<framework src="com.google.android.gms:play-services-gcm:+" />
 		<framework src="src/android/fix-playservices-applicationid-CB-10014.gradle" custom="true" type="gradleReference" />
+		<framework src="com.google.firebase:firebase-core:+" />
+		<framework src="com.google.firebase:firebase-messaging:+" />
 		<!-- this should not be in this plugin, perhaps in a special-purpose one -->
 		<!--framework src="src/android/shrinkresources.gradle" custom="true" type="gradleReference" /-->
 	</platform>
